@@ -1183,6 +1183,33 @@ void SIPEngine::sendINFO(const char * wInfo)
 	osip_message_free(info);
 };
 
+  void SIPEngine::processReInviteMessage(osip_message_t * msg)
+  {
+         //first ack it
+         string proxy = get_return_address(msg);
+	osip_message_t* ack = sip_ack( mRemoteDomain.c_str(),
+		mRemoteUsername.c_str(), 
+		mSIPUsername.c_str(),
+		mSIPPort, mSIPIP.c_str(), proxy.c_str(), 
+		mMyToFromHeader, mRemoteToFromHeader,
+		mViaBranch.c_str(), mCallIDHeader, mCSeq
+	);
+	struct sockaddr_in retProxyAddr;	 
+	if (!resolveAddress(&retProxyAddr,proxy.c_str())) {
+		LOG(ALERT) << "cannot resolve IP address for " << proxy;
+		return;
+	}
+	
+	gSIPInterface.write(&retProxyAddr,ack);
+	osip_message_free(ack);	
+
+         //then repair the RTP port to the new endpoint, do we need to reinit timestamp?
+	char d_ip_addr[20];
+	char d_port[10];
+	get_rtp_params(msg, d_port, d_ip_addr);
+	LOG(DEBUG) << "IP="<<d_ip_addr<<" "<<d_port<<" "<<mRTPPort;
+	rtp_session_set_remote_addr(mSession, d_ip_addr, atoi(d_port));         
+  }
 
 
 // vim: ts=4 sw=4

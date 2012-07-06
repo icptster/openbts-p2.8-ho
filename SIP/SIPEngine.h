@@ -353,7 +353,8 @@ public:
 
 	/** Save a copy of a CANCEL message in the engine. */
 	void saveCANCEL(const osip_message_t *CANCEL, bool mine);
-
+        /**enhance the engine to be capable of process re-Invite message*/
+        void processReInviteMessage(osip_message_t * msg);
 
 
 	private:

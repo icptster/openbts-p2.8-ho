@@ -235,6 +235,8 @@ class TransactionEntry {
 
 	const std::string SIPCallID() const { ScopedLock lock(mLock); return mSIP.callID(); }
 
+        void processReInviteMessage(osip_message_t * msg);
+
 	// These are called by SIPInterface.
 	void saveINVITE(const osip_message_t* invite, bool local)
 		{ ScopedLock lock(mLock); mSIP.saveINVITE(invite,local); }

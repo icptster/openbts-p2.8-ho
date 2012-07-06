@@ -31,8 +31,13 @@
 #include <Interthread.h>
 #include <Sockets.h>
 #include <osip2/osip.h>
-
 #include <string>
+
+namespace Control {
+
+class TransactionEntry;
+
+}
 
 
 namespace GSM {
@@ -195,6 +200,7 @@ public:
 	bool removeCall(const std::string& call_id);
 
 	int fifoSize(const std::string& call_id );
+        Control::TransactionEntry* getReInviteTransEntry(GSM::L3MobileIdentity mobileID, const char * callIDNum);
 
 };
 

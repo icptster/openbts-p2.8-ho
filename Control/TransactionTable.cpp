@@ -570,7 +570,10 @@ bool TransactionEntry::terminationRequested()
 	return retVal;
 }
 
-
+void TransactionEntry::processReInviteMessage(osip_message_t * msg)
+{
+       mSIP.processReInviteMessage(msg);
+}
 
 void TransactionTable::init()
 	// This assumes the main application uses sdevrandom.
