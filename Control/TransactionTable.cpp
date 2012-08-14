@@ -362,6 +362,38 @@ SIP::SIPState TransactionEntry::MOCSendACK()
 	return state;
 }
 
+SIP::SIPState TransactionEntry::HOWaitForOK()
+{
+	ScopedLock lock(mLock);
+	SIP::SIPState state = mSIP.HOWaitForOK();
+	echoSIPState(state);
+	return state;
+}
+
+SIP::SIPState TransactionEntry::HOSendACK()
+{
+	ScopedLock lock(mLock);
+	SIP::SIPState state = mSIP.HOSendACK();
+	echoSIPState(state);
+	return state;
+}
+
+SIP::SIPState TransactionEntry::HOSendINVITE(string whichBTS)
+{
+	ScopedLock lock(mLock);
+	SIP::SIPState state = mSIP.HOSendINVITE(whichBTS);
+	echoSIPState(state);
+	return state;
+}
+
+SIP::SIPState TransactionEntry::HOSendREINVITE()
+{
+	ScopedLock lock(mLock);
+	SIP::SIPState state = mSIP.HOSendREINVITE();
+	echoSIPState(state);
+	return state;
+}
+
 SIP::SIPState TransactionEntry::SOSSendINVITE(short rtpPort, unsigned codec)
 {
 	ScopedLock lock(mLock);

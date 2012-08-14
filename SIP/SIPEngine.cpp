@@ -75,6 +75,10 @@ const char* SIP::SIPStateString(SIPState s)
 		case Canceled: return "Canceled";
 		case Cleared: return "Cleared";
 		case MessageSubmit: return "SMS-Submit";
+		//HO state
+		case HO_Initiated: return "HO_Initiated";
+		case HO_WaitAccess: return "HO_WaitAccess";
+		case HO_Active: return "HO_Active";		
 		default: return NULL;
 	}
 }
@@ -709,6 +713,145 @@ SIPState SIPEngine::MODWaitForCANCELOK()
 
 	return mState;
 }
+
+
+SIPState SIPEngine::HOSendINVITE(string whichBTS)
+{
+	LOG(INFO) << "user " << mSIPUsername << " state " << mState;
+	
+	// Set Invite params. 
+	// new CSEQ and codec 
+	char tmp[50];
+	make_branch(tmp);
+	mViaBranch = tmp;
+	mCSeq++;
+	
+	LOG(DEBUG) << "mRemoteUsername=" << mRemoteUsername;
+	LOG(DEBUG) << "mSIPUsername=" << mSIPUsername;
+
+	osip_message_t * invite = sip_handover(
+		mSIPUsername.c_str(), mRTPPort, mSIPUsername.c_str(), 
+		mSIPPort, mSIPIP.c_str(), mProxyIP.c_str(), 
+		mMyTag.c_str(), mViaBranch.c_str(), mCallID.c_str(), mCSeq, mCodec); 
+
+	
+	// Send Invite.
+
+
+	if (! resolveAddress(&mHOtoBTSAddr, whichBTS.c_str(), mSIPPort)) {
+		LOG(ALERT) << "cannot resolve IP address for " << whichBTS;
+		return mState;
+	}	
+	gSIPInterface.write(&mHOtoBTSAddr,invite);
+	//saveINVITE(invite,true);
+	osip_message_free(invite);
+	mState = HO_Initiated;
+	return mState;
+};
+
+SIPState  SIPEngine::HOWaitForOK()
+{
+	LOG(INFO) << "user " << mSIPUsername << " state " << mState;
+
+	osip_message_t * msg;
+
+	// Read off the fifo. if time out will
+	// clean up and return false.
+	try {
+		msg = gSIPInterface.read(mCallID, gConfig.getNum("SIP.Timer.A"));
+	}
+	catch (SIPTimeout& e) { 
+		LOG(DEBUG) << "timeout";
+		mState = Timeout;
+		return mState;
+	}
+
+	int status = msg->status_code;
+	LOG(DEBUG) << "received status " << status;
+	saveResponse(msg);
+	switch (status) {
+		case 100:	// Trying
+		case 183:	// Progress
+			mState = HO_WaitAccess;
+			break;
+		case 200:	// OK
+			// Save the response and update the state,
+			// but the ACK doesn't happen until the call connects.
+			mState = HO_Active;
+			
+			break;
+		// Anything 400 or above terminates the call, so we ACK.
+		// FIXME -- It would be nice to save more information about the
+		// specific failure cause.
+		case 486:
+		case 503:
+			mState = Busy;
+			HOSendACK();
+			break;
+		default:
+			LOG(NOTICE) << "unhandled status code " << status;
+			mState = Fail;
+			MOCSendACK();
+	}
+	osip_message_free(msg);
+	LOG(DEBUG) << " new state: " << mState;
+	return mState;
+}
+
+//this isn't working right now -kurtis
+SIPState SIPEngine::HOSendACK()
+{
+	assert(mLastResponse);
+
+	// new branch
+	char tmp[50];
+	make_branch(tmp);
+	mViaBranch = tmp;
+
+	LOG(INFO) << "user " << mSIPUsername << " state " << mState;
+
+	osip_message_t* ack = sip_ack( mRemoteDomain.c_str(),
+		mRemoteUsername.c_str(), 
+		mSIPUsername.c_str(),
+		mSIPPort, mSIPIP.c_str(), mProxyIP.c_str(), 
+		mMyToFromHeader, mRemoteToFromHeader,
+		mViaBranch.c_str(), mCallIDHeader, mCSeq
+	);
+
+	gSIPInterface.write(&mHOtoBTSAddr,ack);
+	osip_message_free(ack);	
+
+	return mState;
+}
+
+SIPState SIPEngine::HOSendREINVITE()
+{
+	LOG(INFO) << "user " << mSIPUsername << " state " << mState;
+	
+	// Set Invite params. 
+	// new CSEQ and codec 
+	char tmp[50];
+	make_branch(tmp);
+	mViaBranch = tmp;
+	mCSeq++;
+	
+	LOG(DEBUG) << "mRemoteUsername=" << mRemoteUsername;
+	LOG(DEBUG) << "mSIPUsername=" << mSIPUsername;
+
+	osip_message_t * invite = sip_handover(
+		mRemoteUsername.c_str(), mRTPPort, mSIPUsername.c_str(), 
+		mSIPPort, mSIPIP.c_str(), mProxyIP.c_str(), 
+		mMyTag.c_str(), mViaBranch.c_str(), mCallID.c_str(), mCSeq, mCodec); 
+
+	
+	// Send Invite.
+
+	gSIPInterface.write(&mHOtoBTSAddr,invite);
+	saveINVITE(invite,true);
+	osip_message_free(invite);
+	mState = HO_Initiated;
+	return mState;
+};
 
 SIPState SIPEngine::MTDCheckBYE()
 {

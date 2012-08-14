@@ -63,7 +63,11 @@ enum SIPState  {
 	Canceled,
 	Cleared,
 	Fail,
-	MessageSubmit
+	MessageSubmit,
+	//HO state
+	HO_Initiated,
+	HO_WaitAccess,
+	HO_Active
 };
 
 
@@ -104,6 +108,9 @@ private:
 	std::string mProxyIP;			///< IP address of the SIP proxy
 	unsigned mProxyPort;			///< UDP port number of the SIP proxy
 	struct ::sockaddr_in mProxyAddr;	///< the ready-to-use UDP address
+
+	struct ::sockaddr_in mHOtoBTSAddr;	///< target iBTS address
+
 	//@}
 
 	/**@name Saved SIP messages. */
@@ -302,7 +309,10 @@ public:
 	SIPState MTDSendCANCELOK();
 	//@}
 
-
+         SIPState HOSendINVITE(string whichBTS);
+	SIPState HOWaitForOK();
+	SIPState HOSendACK();
+	SIPState HOSendREINVITE();
 	/** Set up to start sending RFC2833 DTMF event frames in the RTP stream. */
 	bool startDTMF(char key);
 

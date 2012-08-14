@@ -193,6 +193,10 @@ class TransactionEntry {
 	SIP::SIPState SOSSendACK() { return MOCSendACK(); }
 	void SOSInitRTP() { MOCInitRTP(); }
 
+	SIP::SIPState HOSendINVITE(string whichBTS);
+	SIP::SIPState HOWaitForOK();
+	SIP::SIPState HOSendACK();
+         SIP::SIPState HOSendREINVITE();
 
 	SIP::SIPState MTCSendTrying();
 	SIP::SIPState MTCSendRinging();

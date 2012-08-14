@@ -66,6 +66,7 @@ osip_message_t * sip_b_okay( osip_message_t * bye  );
 osip_message_t * sip_trying( osip_message_t * invite, const char * sip_username, const char * local_ip);
 
 osip_message_t * sip_ringing( osip_message_t * invite, const char * sip_username, const char * local_ip);
+osip_message_t * sip_handover( const char * dialed_number, short rtp_port, const char * sip_username, short wlocal_port, const char * local_ip, const char * proxy_ip, const char * from_tag, const char * via_branch, const char * call_id, int cseq, unsigned codec) ;
 
 
 

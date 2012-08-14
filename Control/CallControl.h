@@ -57,6 +57,7 @@ void MTCStarter(TransactionEntry*, GSM::LogicalChannel*);
 /** Complete the MTC connection. */
 void MTCController(TransactionEntry*, GSM::TCHFACCHLogicalChannel*);
 //@}
+void HOController(TransactionEntry *transaction);
 
 
 /**@name Test Call */

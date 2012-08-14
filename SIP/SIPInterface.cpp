@@ -354,12 +354,6 @@ bool SIPInterface::checkInvite( osip_message_t * msg)
 		LOG(WARNING) << "Incoming INVITE/MESSAGE with no call ID";
 		return false;
 	}
-	TransactionEntry* reInviteTrans = NULL;
-	if ((reInviteTrans = getReInviteTransEntry(mobileID,callIDNum))!= NULL)
-	{
-	      reInviteTrans->processReInviteMessage(msg);
-	      return true;
-	}
 
 
 	// Find any active transaction for this IMSI with an assigned TCH or SDCCH.
@@ -482,26 +476,8 @@ bool SIPInterface::checkInvite( osip_message_t * msg)
 	return true;
 }
 
-TransactionEntry* SIPInterface::getReInviteTransEntry(L3MobileIdentity mobileID, const char * callIDNum)
-{
-      //this code detect if INTIVE belongs to an existing SIP session
-      //if so, check SDP (it must exist, codec should be the same etc.)  ?    
-      //first we check if there is a active call for the mobileID
-      TransactionEntry* transaction= gTransactionTable.find(mobileID,GSM::Active);
-       if (transaction == NULL)
-	   return NULL;
-       //then check the corresponding callIDNum,maybe from tag and
-       // to_tag should be considerd, but most time just the callid should be OK.
-       if(!strcmp(transaction->SIPCallID().c_str() , callIDNum))
-       {
-             //check SDP? currently do we really need to check the sdp, for now
-             //we just support gsm codec with definite(hardcode) pt and sample rate
-             return transaction;
-             
-       }
-       return NULL;
 
-}
+
 
 
 // vim: ts=4 sw=4

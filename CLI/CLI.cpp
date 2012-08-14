@@ -728,8 +728,30 @@ int noise(int argc, char** argv, ostream& os, istream& is)
 
         return SUCCESS;
 }
-
 int handover(int argc, char** argv, ostream& os, istream& is)
+{
+	unsigned handoverReference;
+
+	if (argc!=3) return BAD_NUM_ARGS;
+	handoverReference = atoi(argv[2]);
+	size_t count = gTransactionTable.dump(os);
+	os << endl << count << " transactions in table" << endl;
+	
+	GSM::L3MobileIdentity mobileID(argv[1]);
+
+        Control::TransactionEntry* transaction= gTransactionTable.find(mobileID,GSM::Active);
+	if(transaction==NULL) {
+		os << "transaction with IMSI not found " << argv[1];
+		return BAD_NUM_ARGS;
+	} 
+	string whichBTS = "127.0.0.1";
+	transaction->HOSendINVITE(whichBTS);
+	LOG(DEBUG) << "transaction: " << *transaction;
+	HOController(transaction);
+	
+	
+}
+int handover_old(int argc, char** argv, ostream& os, istream& is)
 {
 	unsigned handoverReference;
 
