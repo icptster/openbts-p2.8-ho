@@ -124,6 +124,8 @@ private:
 	/**@name RTP state and parameters. */
 	//@{
 	short mRTPPort;
+	short mDRTPPort;
+	
 	unsigned mCodec;
 	RtpSession * mSession;		///< RTP media session
 	unsigned int mTxTime;		///< RTP transmission timestamp in 8 kHz samples
@@ -309,7 +311,7 @@ public:
 	SIPState MTDSendCANCELOK();
 	//@}
 
-         SIPState HOSendINVITE(string whichBTS);
+         SIPState HOSendINVITE(string whichBTS, unsigned L3TI);
 	SIPState HOWaitForOK();
 	SIPState HOSendACK();
 	SIPState HOSendREINVITE();

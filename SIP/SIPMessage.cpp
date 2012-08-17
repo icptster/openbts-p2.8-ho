@@ -502,7 +502,7 @@ osip_message_t * SIP::sip_handover( const char * dialed_number, short rtp_port, 
 	osip_from_set_displayname(request->from, strdup(sip_username));
 
 	// FROM TAG
-	osip_from_set_tag(request->from, strdup("handover"));
+	osip_from_set_tag(request->from, strdup(from_tag));
 
 	osip_uri_init(&request->from->url);
 	osip_uri_set_host(request->from->url, strdup(proxy_ip));

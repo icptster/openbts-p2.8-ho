@@ -381,7 +381,7 @@ SIP::SIPState TransactionEntry::HOSendACK()
 SIP::SIPState TransactionEntry::HOSendINVITE(string whichBTS)
 {
 	ScopedLock lock(mLock);
-	SIP::SIPState state = mSIP.HOSendINVITE(whichBTS);
+	SIP::SIPState state = mSIP.HOSendINVITE(whichBTS,mL3TI);
 	echoSIPState(state);
 	return state;
 }

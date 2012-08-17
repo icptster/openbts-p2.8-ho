@@ -128,6 +128,8 @@ SIPEngine::SIPEngine(const char* proxy, const char* IMSI)
 
 	//to make sure noise doesn't magically equal a valid RTP port
 	mRTPPort = 0;
+	mDRTPPort = 0;
+
 }
 
 
@@ -715,24 +717,27 @@ SIPState SIPEngine::MODWaitForCANCELOK()
 }
 
 
-SIPState SIPEngine::HOSendINVITE(string whichBTS)
+SIPState SIPEngine::HOSendINVITE(string whichBTS, unsigned L3TI)
 {
 	LOG(INFO) << "user " << mSIPUsername << " state " << mState;
 	
 	// Set Invite params. 
 	// new CSEQ and codec 
 	char tmp[50];
+	char handoverTag[50];
+	sprintf(handoverTag, "handover%d",L3TI);
 	make_branch(tmp);
 	mViaBranch = tmp;
 	mCSeq++;
 	
 	LOG(DEBUG) << "mRemoteUsername=" << mRemoteUsername;
 	LOG(DEBUG) << "mSIPUsername=" << mSIPUsername;
-
+	LOG(DEBUG) << "handoverTag=" << handoverTag;
+         
 	osip_message_t * invite = sip_handover(
-		mSIPUsername.c_str(), mRTPPort, mSIPUsername.c_str(), 
+		mSIPUsername.c_str(), mDRTPPort, mSIPUsername.c_str(), 
 		mSIPPort, mSIPIP.c_str(), mProxyIP.c_str(), 
-		mMyTag.c_str(), mViaBranch.c_str(), mCallID.c_str(), mCSeq, mCodec); 
+		handoverTag, mViaBranch.c_str(), mCallID.c_str(), mCSeq, mCodec); 
 
 	
 	// Send Invite.
@@ -1110,7 +1115,7 @@ void SIPEngine::InitRTP(const osip_message_t * msg )
 	char d_port[10];
 	get_rtp_params(msg, d_port, d_ip_addr);
 	LOG(DEBUG) << "IP="<<d_ip_addr<<" "<<d_port<<" "<<mRTPPort;
-
+         mDRTPPort = atoi(d_port);
 	rtp_session_set_local_addr(mSession, "0.0.0.0", mRTPPort );
 	rtp_session_set_remote_addr(mSession, d_ip_addr, atoi(d_port));
 
